@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { News } from '../../models/news.model';
 
@@ -9,7 +9,7 @@ import { News } from '../../models/news.model';
   template: `
     <div class="news-card card">
       <div class="news-image">
-        <img [src]="news.imageUrl" alt="{{ news.title }}">
+        <img [src]="news.imageUrl" alt="{{ news.title }}" loading="lazy">
         <span class="badge" [ngClass]="news.shariaStatus === 'Halal' ? 'badge-halal' : 'badge-haram'">
           {{ news.shariaStatus }}
         </span>
@@ -32,6 +32,7 @@ import { News } from '../../models/news.model';
       margin-bottom: 20px;
       overflow: hidden;
       transition: all 0.3s ease;
+      will-change: transform, box-shadow;
     }
 
     .news-card:hover {
@@ -128,7 +129,8 @@ import { News } from '../../models/news.model';
     .news-card:hover .read-more {
       color: var(--secondary-color);
     }
-  `
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NewsCardComponent {
   @Input() news!: News;

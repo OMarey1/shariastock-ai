@@ -1,9 +1,11 @@
-import { Component, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { Stock } from '../../models/stock.model';
 import { StockCardComponent } from '../../components/stock-card/stock-card.component';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-search',
@@ -24,7 +26,7 @@ import { StockCardComponent } from '../../components/stock-card/stock-card.compo
             <input
               type="text"
               [(ngModel)]="searchTerm"
-              (input)="onSearch()"
+              (input)="searchTermChanged()"
               placeholder="Search by stock name or code"
             >
             <div class="search-icon">
@@ -70,7 +72,7 @@ import { StockCardComponent } from '../../components/stock-card/stock-card.compo
           </div>
 
           <div class="stocks-grid" *ngIf="!loading && stocks.length > 0">
-            <app-stock-card *ngFor="let stock of stocks" [stock]="stock"></app-stock-card>
+            <app-stock-card *ngFor="let stock of stocks; trackBy: trackByStockId" [stock]="stock"></app-stock-card>
           </div>
         </div>
       </div>
@@ -288,12 +290,17 @@ import { StockCardComponent } from '../../components/stock-card/stock-card.compo
     }
   `
 })
-export class SearchComponent implements OnInit, AfterViewInit {
+export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
   stocks: Stock[] = [];
   categories: string[] = [];
   searchTerm: string = '';
   selectedCategory: string = '';
   loading: boolean = true;
+
+  private searchTerms = new Subject<string>();
+  private destroy$ = new Subject<void>();
+  private animationFrameId?: number;
+  private resizeObserver?: ResizeObserver;
 
   @ViewChild('backgroundAnimation') backgroundAnimation!: ElementRef;
 
@@ -302,10 +309,38 @@ export class SearchComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.loadCategories();
     this.loadStocks();
+
+    // Set up debounced search
+    this.searchTerms.pipe(
+      takeUntil(this.destroy$),
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.loadStocks();
+    });
   }
 
   ngAfterViewInit(): void {
     this.initBackgroundAnimation();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+
+    // Clean up animation frame
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+
+    // Clean up resize observer
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+  }
+
+  searchTermChanged(): void {
+    this.searchTerms.next(this.searchTerm);
   }
 
   initBackgroundAnimation(): void {
@@ -326,8 +361,9 @@ export class SearchComponent implements OnInit, AfterViewInit {
         return;
       }
 
+      // Reduce particle count for better performance
       const particles: any[] = [];
-      const particleCount = 50;
+      const particleCount = 30; // Reduced from 50
 
       for (let i = 0; i < particleCount; i++) {
         particles.push({
@@ -335,12 +371,12 @@ export class SearchComponent implements OnInit, AfterViewInit {
           y: Math.random() * canvas.height,
           radius: Math.random() * 3 + 1,
           color: i % 2 === 0 ? '#27ae60' : '#2c3e50',
-          speedX: Math.random() * 0.5 - 0.25,
-          speedY: Math.random() * 0.5 - 0.25
+          speedX: Math.random() * 0.3 - 0.15, // Reduced speed
+          speedY: Math.random() * 0.3 - 0.15  // Reduced speed
         });
       }
 
-      function drawParticles() {
+      const drawParticles = () => {
         if (!ctx) return;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -365,38 +401,41 @@ export class SearchComponent implements OnInit, AfterViewInit {
           }
         });
 
-        // Draw connections
+        // Draw connections - only draw connections for particles that are close
+        // This improves performance by reducing the number of lines drawn
         particles.forEach((particle, i) => {
-          particles.slice(i + 1).forEach(otherParticle => {
+          // Only check a subset of particles for connections
+          for (let j = i + 1; j < Math.min(i + 10, particles.length); j++) {
+            const otherParticle = particles[j];
             const dx = particle.x - otherParticle.x;
             const dy = particle.y - otherParticle.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
-            if (distance < 100) {
+            if (distance < 80) { // Reduced connection distance
               ctx.beginPath();
-              ctx.strokeStyle = `rgba(44, 62, 80, ${0.2 * (1 - distance / 100)})`;
+              ctx.strokeStyle = `rgba(44, 62, 80, ${0.15 * (1 - distance / 80)})`; // Reduced opacity
               ctx.lineWidth = 1;
               ctx.moveTo(particle.x, particle.y);
               ctx.lineTo(otherParticle.x, otherParticle.y);
               ctx.stroke();
             }
-          });
+          }
         });
 
-        requestAnimationFrame(drawParticles);
-      }
+        this.animationFrameId = requestAnimationFrame(drawParticles);
+      };
 
       drawParticles();
 
-      // Handle resize
-      const resizeObserver = new ResizeObserver(() => {
+      // Handle resize with ResizeObserver
+      this.resizeObserver = new ResizeObserver(() => {
         if (container) {
           canvas.width = container.offsetWidth || 300;
           canvas.height = container.offsetHeight || 500;
         }
       });
 
-      resizeObserver.observe(container);
+      this.resizeObserver.observe(container);
     }, 100); // Small delay to ensure DOM is ready
   }
 
@@ -414,12 +453,13 @@ export class SearchComponent implements OnInit, AfterViewInit {
     });
   }
 
-  onSearch(): void {
-    this.loadStocks();
-  }
-
   filterByCategory(category: string): void {
     this.selectedCategory = category;
     this.loadStocks();
+  }
+
+  // Track by function for ngFor to improve performance
+  trackByStockId(index: number, stock: Stock): string {
+    return stock.id;
   }
 }

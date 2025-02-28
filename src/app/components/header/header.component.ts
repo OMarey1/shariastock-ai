@@ -27,7 +27,7 @@ import { User } from '../../models/user.model';
                 <a (click)="toggleUserMenu()" class="user-toggle">
                   {{ user?.name || 'User' }} <span class="arrow-down">▼</span>
                 </a>
-                <div class="dropdown-menu" *ngIf="showUserMenu" [@dropdownAnimation]>
+                <div class="dropdown-menu" *ngIf="showUserMenu">
                   <a routerLink="/profile">Profile</a>
                   <a routerLink="/portfolio">Portfolio</a>
                   <a (click)="logout()">Logout</a>
@@ -90,6 +90,8 @@ import { User } from '../../models/user.model';
       display: flex;
       list-style: none;
       align-items: center;
+      margin: 0;
+      padding: 0;
     }
 
     nav ul li {
@@ -127,10 +129,11 @@ import { User } from '../../models/user.model';
 
     .signup-btn {
       background-color: var(--secondary-color);
-      padding: 8px 16px;
+      padding: 8px 16px !important;
       border-radius: 4px;
       color: white;
       transition: all 0.3s ease;
+      display: inline-block;
     }
 
     .signup-btn:hover {
@@ -151,6 +154,7 @@ import { User } from '../../models/user.model';
     .user-toggle {
       display: flex;
       align-items: center;
+      padding: 5px 10px !important;
     }
 
     .arrow-down {
@@ -172,8 +176,7 @@ import { User } from '../../models/user.model';
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       width: 150px;
       margin-top: 10px;
-      opacity: 0;
-      transform: translateY(-10px);
+      z-index: 1001;
       animation: dropdownFade 0.3s ease forwards;
     }
 
@@ -190,7 +193,7 @@ import { User } from '../../models/user.model';
 
     .dropdown-menu a {
       display: block;
-      padding: 10px 15px;
+      padding: 10px 15px !important;
       color: #333 !important;
       border-bottom: 1px solid #eee;
       transition: all 0.2s ease;
@@ -203,7 +206,7 @@ import { User } from '../../models/user.model';
     .dropdown-menu a:hover {
       background-color: #f8f9fa;
       color: var(--primary-color) !important;
-      padding-left: 20px;
+      padding-left: 20px !important;
     }
   `
 })
@@ -213,7 +216,7 @@ export class HeaderComponent implements OnInit {
   showUserMenu: boolean = false;
   scrolled: boolean = false;
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   ngOnInit(): void {
     this.authService.authState$.subscribe(state => {
@@ -229,6 +232,15 @@ export class HeaderComponent implements OnInit {
 
   toggleUserMenu(): void {
     this.showUserMenu = !this.showUserMenu;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    // Close the user menu when clicking outside
+    const userMenuElement = (event.target as HTMLElement).closest('.user-menu');
+    if (!userMenuElement && this.showUserMenu) {
+      this.showUserMenu = false;
+    }
   }
 
   logout(): void {

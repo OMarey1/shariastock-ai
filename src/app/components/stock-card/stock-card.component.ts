@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Stock } from '../../models/stock.model';
@@ -35,6 +35,7 @@ import { Stock } from '../../models/stock.model';
       width: 100%;
       transition: all 0.3s ease;
       border-left: 4px solid transparent;
+      will-change: transform, box-shadow;
     }
 
     .stock-card:hover {
@@ -144,7 +145,8 @@ import { Stock } from '../../models/stock.model';
     .negative-chart {
       background: linear-gradient(90deg, transparent, var(--danger-color));
     }
-  `
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class StockCardComponent {
   @Input() stock!: Stock;
