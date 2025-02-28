@@ -13,6 +13,7 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
   template: `
     <div class="stock-detail-page">
       <div class="loading" *ngIf="loading">
+        <div class="loading-spinner"></div>
         <p>Loading stock details...</p>
       </div>
       
@@ -35,6 +36,12 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
           <div class="current-price">\${{ stock.price.toFixed(2) }}</div>
           <div class="price-change" [ngClass]="stock.change >= 0 ? 'positive' : 'negative'">
             {{ stock.change >= 0 ? '+' : '' }}{{ stock.change.toFixed(2) }} ({{ stock.changePercent.toFixed(2) }}%)
+          </div>
+        </div>
+        
+        <div class="stock-chart">
+          <div class="chart-placeholder">
+            <div class="chart-line" [ngClass]="stock.change >= 0 ? 'positive-chart' : 'negative-chart'"></div>
           </div>
         </div>
         
@@ -79,6 +86,7 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
           <h3>Latest News</h3>
           
           <div class="loading" *ngIf="loadingNews">
+            <div class="loading-spinner"></div>
             <p>Loading news...</p>
           </div>
           
@@ -96,6 +104,16 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
   styles: `
     .stock-detail-page {
       padding: 20px 0;
+      animation: fadeIn 0.8s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
     }
 
     .loading, .not-found {
@@ -107,11 +125,40 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
       box-shadow: var(--shadow);
     }
 
+    .loading-spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(44, 62, 80, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--primary-color);
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 10px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
     .stock-content {
       background: white;
       border-radius: 8px;
       box-shadow: var(--shadow);
       padding: 20px;
+      animation: slideUp 0.8s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .stock-header {
@@ -121,6 +168,18 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
       margin-bottom: 16px;
       padding-bottom: 16px;
       border-bottom: 1px solid #eee;
+      animation: slideInLeft 0.8s ease;
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
 
     .stock-title h2 {
@@ -137,10 +196,35 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
     .badge {
       font-size: 1rem;
       padding: 6px 12px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+      100% {
+        transform: scale(1);
+      }
     }
 
     .stock-price-section {
       margin-bottom: 24px;
+      animation: slideInRight 0.8s ease;
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
 
     .current-price {
@@ -151,6 +235,11 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
 
     .price-change {
       font-size: 1.2rem;
+      transition: all 0.3s ease;
+    }
+
+    .price-change:hover {
+      transform: translateY(-2px);
     }
 
     .positive {
@@ -161,8 +250,50 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
       color: var(--danger-color);
     }
 
+    .stock-chart {
+      margin-bottom: 24px;
+      animation: fadeIn 1s ease;
+      animation-delay: 0.3s;
+      animation-fill-mode: both;
+    }
+
+    .chart-placeholder {
+      height: 200px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart-line {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 100%;
+      animation: chartDraw 2s ease forwards;
+      animation-delay: 0.5s;
+    }
+
+    @keyframes chartDraw {
+      to {
+        width: 100%;
+      }
+    }
+
+    .positive-chart {
+      background: linear-gradient(90deg, transparent, rgba(39, 174, 96, 0.2));
+    }
+
+    .negative-chart {
+      background: linear-gradient(90deg, transparent, rgba(231, 76, 60, 0.2));
+    }
+
     .stock-details {
       margin-bottom: 24px;
+      animation: fadeIn 1s ease;
+      animation-delay: 0.5s;
+      animation-fill-mode: both;
     }
 
     .detail-section {
@@ -173,6 +304,23 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
       font-size: 1.3rem;
       margin-bottom: 12px;
       color: var(--primary-color);
+      position: relative;
+      display: inline-block;
+    }
+
+    .detail-section h3::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 40px;
+      height: 2px;
+      background-color: var(--secondary-color);
+      transition: width 0.3s ease;
+    }
+
+    .detail-section h3:hover::after {
+      width: 100%;
     }
 
     .detail-section p {
@@ -190,6 +338,13 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
       padding: 12px;
       background-color: #f8f9fa;
       border-radius: 6px;
+      transition: all 0.3s ease;
+    }
+
+    .stat-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      background-color: white;
     }
 
     .stat-label {
@@ -208,6 +363,23 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
       font-size: 1.3rem;
       margin-bottom: 16px;
       color: var(--primary-color);
+      position: relative;
+      display: inline-block;
+    }
+
+    .stock-news h3::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 40px;
+      height: 2px;
+      background-color: var(--secondary-color);
+      transition: width 0.3s ease;
+    }
+
+    .stock-news h3:hover::after {
+      width: 100%;
     }
 
     .no-news {
@@ -222,6 +394,9 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
       gap: 20px;
+      animation: fadeIn 1s ease;
+      animation-delay: 0.7s;
+      animation-fill-mode: both;
     }
 
     @media (max-width: 768px) {

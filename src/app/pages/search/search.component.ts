@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
@@ -11,6 +11,8 @@ import { StockCardComponent } from '../../components/stock-card/stock-card.compo
   imports: [CommonModule, FormsModule, StockCardComponent],
   template: `
     <div class="search-page">
+      <div class="background-animation" #backgroundAnimation></div>
+
       <div class="search-header">
         <h2>Search Stocks</h2>
         <p>Find Sharia-compliant stocks for your investment portfolio</p>
@@ -19,28 +21,31 @@ import { StockCardComponent } from '../../components/stock-card/stock-card.compo
       <div class="search-container">
         <div class="search-filters">
           <div class="search-box">
-            <input 
-              type="text" 
-              [(ngModel)]="searchTerm" 
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
               (input)="onSearch()"
               placeholder="Search by stock name or code"
             >
+            <div class="search-icon">
+              <i class="fas fa-search"></i>
+            </div>
           </div>
-          
+
           <div class="category-filter">
             <h3>Filter by Category</h3>
             <div class="category-list">
               <div class="category-item">
-                <button 
-                  [ngClass]="{'active': selectedCategory === ''}" 
+                <button
+                  [ngClass]="{'active': selectedCategory === ''}"
                   (click)="filterByCategory('')"
                 >
                   All Categories
                 </button>
               </div>
               <div class="category-item" *ngFor="let category of categories">
-                <button 
-                  [ngClass]="{'active': selectedCategory === category}" 
+                <button
+                  [ngClass]="{'active': selectedCategory === category}"
                   (click)="filterByCategory(category)"
                 >
                   {{ category }}
@@ -54,15 +59,16 @@ import { StockCardComponent } from '../../components/stock-card/stock-card.compo
           <div class="results-header">
             <h3>Results ({{ stocks.length }})</h3>
           </div>
-          
+
           <div class="loading" *ngIf="loading">
+            <div class="loading-spinner"></div>
             <p>Loading stocks...</p>
           </div>
-          
+
           <div class="no-results" *ngIf="!loading && stocks.length === 0">
             <p>No stocks found matching your criteria.</p>
           </div>
-          
+
           <div class="stocks-grid" *ngIf="!loading && stocks.length > 0">
             <app-stock-card *ngFor="let stock of stocks" [stock]="stock"></app-stock-card>
           </div>
@@ -73,11 +79,35 @@ import { StockCardComponent } from '../../components/stock-card/stock-card.compo
   styles: `
     .search-page {
       padding: 20px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .background-animation {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      opacity: 0.1;
     }
 
     .search-header {
       margin-bottom: 20px;
       text-align: center;
+      animation: fadeInDown 0.8s ease;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .search-header h2 {
@@ -94,6 +124,16 @@ import { StockCardComponent } from '../../components/stock-card/stock-card.compo
       display: grid;
       grid-template-columns: 250px 1fr;
       gap: 20px;
+      animation: fadeIn 1s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
     }
 
     .search-filters {
@@ -101,10 +141,47 @@ import { StockCardComponent } from '../../components/stock-card/stock-card.compo
       border-radius: 8px;
       box-shadow: var(--shadow);
       padding: 16px;
+      animation: slideInLeft 0.8s ease;
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
 
     .search-box {
       margin-bottom: 20px;
+      position: relative;
+    }
+
+    .search-box input {
+      padding-right: 40px;
+      transition: all 0.3s ease;
+      border: 1px solid #ddd;
+    }
+
+    .search-box input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.2);
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+      transition: color 0.3s ease;
+    }
+
+    .search-box input:focus + .search-icon {
+      color: var(--primary-color);
     }
 
     .category-filter h3 {
@@ -125,6 +202,24 @@ import { StockCardComponent } from '../../components/stock-card/stock-card.compo
       color: #333;
       padding: 8px;
       border-radius: 4px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .category-item button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .category-item button:hover::before {
+      left: 100%;
     }
 
     .category-item button.active {
@@ -137,6 +232,18 @@ import { StockCardComponent } from '../../components/stock-card/stock-card.compo
       border-radius: 8px;
       box-shadow: var(--shadow);
       padding: 16px;
+      animation: slideInRight 0.8s ease;
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
 
     .results-header {
@@ -149,6 +256,23 @@ import { StockCardComponent } from '../../components/stock-card/stock-card.compo
       padding: 20px;
       text-align: center;
       color: #666;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(44, 62, 80, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--primary-color);
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 10px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .stocks-grid {
@@ -164,18 +288,116 @@ import { StockCardComponent } from '../../components/stock-card/stock-card.compo
     }
   `
 })
-export class SearchComponent implements OnInit {
+export class SearchComponent implements OnInit, AfterViewInit {
   stocks: Stock[] = [];
   categories: string[] = [];
   searchTerm: string = '';
   selectedCategory: string = '';
   loading: boolean = true;
 
-  constructor(private apiService: ApiService) {}
+  @ViewChild('backgroundAnimation') backgroundAnimation!: ElementRef;
+
+  constructor(private apiService: ApiService) { }
 
   ngOnInit(): void {
     this.loadCategories();
     this.loadStocks();
+  }
+
+  ngAfterViewInit(): void {
+    this.initBackgroundAnimation();
+  }
+
+  initBackgroundAnimation(): void {
+    // Wait for the DOM to be fully loaded
+    setTimeout(() => {
+      const container = this.backgroundAnimation.nativeElement;
+      if (!container) return;
+
+      const canvas = document.createElement('canvas');
+      container.appendChild(canvas);
+
+      canvas.width = container.offsetWidth || 300;
+      canvas.height = container.offsetHeight || 500;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        console.warn('Canvas 2D context not supported');
+        return;
+      }
+
+      const particles: any[] = [];
+      const particleCount = 50;
+
+      for (let i = 0; i < particleCount; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 3 + 1,
+          color: i % 2 === 0 ? '#27ae60' : '#2c3e50',
+          speedX: Math.random() * 0.5 - 0.25,
+          speedY: Math.random() * 0.5 - 0.25
+        });
+      }
+
+      function drawParticles() {
+        if (!ctx) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach(particle => {
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+          ctx.fillStyle = particle.color;
+          ctx.fill();
+
+          // Update position
+          particle.x += particle.speedX;
+          particle.y += particle.speedY;
+
+          // Bounce off edges
+          if (particle.x < 0 || particle.x > canvas.width) {
+            particle.speedX *= -1;
+          }
+
+          if (particle.y < 0 || particle.y > canvas.height) {
+            particle.speedY *= -1;
+          }
+        });
+
+        // Draw connections
+        particles.forEach((particle, i) => {
+          particles.slice(i + 1).forEach(otherParticle => {
+            const dx = particle.x - otherParticle.x;
+            const dy = particle.y - otherParticle.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 100) {
+              ctx.beginPath();
+              ctx.strokeStyle = `rgba(44, 62, 80, ${0.2 * (1 - distance / 100)})`;
+              ctx.lineWidth = 1;
+              ctx.moveTo(particle.x, particle.y);
+              ctx.lineTo(otherParticle.x, otherParticle.y);
+              ctx.stroke();
+            }
+          });
+        });
+
+        requestAnimationFrame(drawParticles);
+      }
+
+      drawParticles();
+
+      // Handle resize
+      const resizeObserver = new ResizeObserver(() => {
+        if (container) {
+          canvas.width = container.offsetWidth || 300;
+          canvas.height = container.offsetHeight || 500;
+        }
+      });
+
+      resizeObserver.observe(container);
+    }, 100); // Small delay to ensure DOM is ready
   }
 
   loadCategories(): void {

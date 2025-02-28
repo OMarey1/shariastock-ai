@@ -7,11 +7,9 @@
 }
 
 :root {
-  --primary-color: #0155a9;
-  --secondary-color: #00a6cf;
-  --danger-color: rgb(255, 0, 0);
-  --halal-color: #27ae60;
-  --haram-color: #e74c3c;
+  --primary-color: #2c3e50;
+  --secondary-color: #27ae60;
+  --danger-color: #e74c3c;
   --light-color: #ecf0f1;
   --dark-color: #2c3e50;
   --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -36,15 +34,16 @@ body {
   font-size: 12px;
   font-weight: bold;
   text-transform: uppercase;
+  transition: all 0.3s ease;
 }
 
 .badge-halal {
-  background-color: var(--halal-color);
+  background-color: var(--secondary-color);
   color: white;
 }
 
 .badge-haram {
-  background-color: var(--haram-color);
+  background-color: var(--danger-color);
   color: white;
 }
 
@@ -52,12 +51,13 @@ body {
   background: white;
   border-radius: 8px;
   box-shadow: var(--shadow);
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 button {
@@ -67,11 +67,34 @@ button {
   border-radius: 4px;
   background-color: var(--primary-color);
   color: white;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+button:hover::before {
+  left: 100%;
 }
 
 button:hover {
   background-color: #34495e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+button:active {
+  transform: translateY(0);
 }
 
 button:disabled {
@@ -79,16 +102,86 @@ button:disabled {
   cursor: not-allowed;
 }
 
-input,
-select {
+button:disabled::before {
+  display: none;
+}
+
+input, select {
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
   width: 100%;
+  transition: all 0.3s ease;
+}
+
+input:focus, select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.2);
+  outline: none;
 }
 
 .header-space {
   height: 70px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Page transitions */
+main {
+  animation: fadeIn 0.5s ease;
 }
 
 /* Auth pages shared styles */
@@ -160,11 +253,17 @@ select {
   border-radius: 4px;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
 }
 
 .auth-button:hover:not(:disabled) {
   background-color: #34495e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.auth-button:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .auth-button:disabled {
@@ -188,8 +287,31 @@ select {
   color: var(--primary-color);
   text-decoration: none;
   font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .auth-redirect a:hover {
-  text-decoration: underline;
+  color: var(--secondary-color);
+}
+
+/* Loading animations */
+.loading-spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(44, 62, 80, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--primary-color);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Page transitions */
+.router-transition {
+  animation: fadeIn 0.5s ease;
 }

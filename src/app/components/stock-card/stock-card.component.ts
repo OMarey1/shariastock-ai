@@ -23,6 +23,9 @@ import { Stock } from '../../models/stock.model';
         </span>
       </div>
       <div class="stock-category">{{ stock.category }}</div>
+      <div class="stock-chart">
+        <div class="chart-line" [ngClass]="stock.change >= 0 ? 'positive-chart' : 'negative-chart'"></div>
+      </div>
     </div>
   `,
   styles: `
@@ -30,6 +33,14 @@ import { Stock } from '../../models/stock.model';
       padding: 16px;
       margin-bottom: 16px;
       width: 100%;
+      transition: all 0.3s ease;
+      border-left: 4px solid transparent;
+    }
+
+    .stock-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      border-left: 4px solid var(--primary-color);
     }
 
     .stock-header {
@@ -42,6 +53,23 @@ import { Stock } from '../../models/stock.model';
     .stock-code {
       font-weight: bold;
       font-size: 1.1rem;
+      position: relative;
+      display: inline-block;
+    }
+
+    .stock-code::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: var(--primary-color);
+      transition: width 0.3s ease;
+    }
+
+    .stock-card:hover .stock-code::after {
+      width: 100%;
     }
 
     .stock-name {
@@ -62,10 +90,21 @@ import { Stock } from '../../models/stock.model';
 
     .price-change {
       font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .stock-card:hover .price-change.positive {
+      color: var(--secondary-color);
+      font-weight: bold;
+    }
+
+    .stock-card:hover .price-change.negative {
+      color: var(--danger-color);
+      font-weight: bold;
     }
 
     .positive {
-      color: var(--halal-color);
+      color: var(--secondary-color);
     }
 
     .negative {
@@ -75,6 +114,35 @@ import { Stock } from '../../models/stock.model';
     .stock-category {
       font-size: 0.8rem;
       color: #888;
+      margin-bottom: 10px;
+    }
+
+    .stock-chart {
+      height: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 0;
+      height: 2px;
+      transform: translateY(-50%);
+      transition: width 1s ease;
+    }
+
+    .stock-card:hover .chart-line {
+      width: 100%;
+    }
+
+    .positive-chart {
+      background: linear-gradient(90deg, transparent, var(--secondary-color));
+    }
+
+    .negative-chart {
+      background: linear-gradient(90deg, transparent, var(--danger-color));
     }
   `
 })
