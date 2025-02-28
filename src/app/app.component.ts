@@ -6,7 +6,7 @@ import { LoadingSpinnerComponent } from './components/loading-spinner/loading-sp
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, HeaderComponent, LoadingSpinnerComponent],
+  imports: [RouterOutlet, HeaderComponent],
   template: `
     <app-header></app-header>
     <div class="header-space"></div>

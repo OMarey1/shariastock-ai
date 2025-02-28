@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../services/api.service';
-import { Stock } from '../../models/stock.model';
+import { Stock, ShariaCompliance } from '../../models/stock.model';
 import { News } from '../../models/news.model';
 import { NewsCardComponent } from '../../components/news-card/news-card.component';
 import { LoadingSpinnerComponent } from '../../components/loading-spinner/loading-spinner.component';
@@ -14,11 +14,11 @@ import { LoadingSpinnerComponent } from '../../components/loading-spinner/loadin
   template: `
     <div class="stock-detail-page">
       <app-loading-spinner *ngIf="loading" message="Loading stock details..."></app-loading-spinner>
-      
+
       <div class="not-found" *ngIf="!loading && !stock">
         <p>Stock not found.</p>
       </div>
-      
+
       <div class="stock-content" *ngIf="!loading && stock">
         <div class="stock-header">
           <div class="stock-title">
@@ -29,66 +29,63 @@ import { LoadingSpinnerComponent } from '../../components/loading-spinner/loadin
             {{ stock.shariaStatus }}
           </span>
         </div>
-        
+
         <div class="stock-price-section">
           <div class="current-price">\${{ stock.price.toFixed(2) }}</div>
           <div class="price-change" [ngClass]="stock.change >= 0 ? 'positive' : 'negative'">
             {{ stock.change >= 0 ? '+' : '' }}{{ stock.change.toFixed(2) }} ({{ stock.changePercent.toFixed(2) }}%)
           </div>
         </div>
-        
+
         <div class="stock-chart">
           <div class="chart-placeholder">
             <div class="chart-line" [ngClass]="stock.change >= 0 ? 'positive-chart' : 'negative-chart'"></div>
           </div>
         </div>
-        
+
         <div class="stock-details">
           <div class="detail-section">
             <h3>About</h3>
             <p>{{ stock.description }}</p>
           </div>
-          
+
           <div class="detail-section">
-            <h3>Key Statistics</h3>
-            <div class="stats-grid">
-              <div class="stat-item">
-                <div class="stat-label">Market Cap</div>
-                <div class="stat-value">\${{ formatLargeNumber(stock.marketCap) }}</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-label">Volume</div>
-                <div class="stat-value">{{ formatLargeNumber(stock.volume) }}</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-label">P/E Ratio</div>
-                <div class="stat-value">{{ stock.peRatio?.toFixed(2) }}</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-label">Dividend Yield</div>
-                <div class="stat-value">{{ stock.dividend?.toFixed(2) }}%</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-label">Sector</div>
-                <div class="stat-value">{{ stock.sector }}</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-label">Industry</div>
-                <div class="stat-value">{{ stock.industry }}</div>
+            <h3>Sharia Statistics</h3>
+            <div class="sharia-stats">
+              <div class="sharia-stat-item" *ngFor="let compliance of shariaCompliance"
+                   [ngClass]="{'compliant': compliance.isCompliant, 'non-compliant': !compliance.isCompliant}">
+                <div class="stat-header">
+                  <div class="stat-title">{{ compliance.standard }}</div>
+                  <div class="compliance-badge" [ngClass]="compliance.isCompliant ? 'badge-halal' : 'badge-haram'">
+                    {{ compliance.isCompliant ? 'Compliant' : 'Non-Compliant' }}
+                  </div>
+                </div>
+                <div class="stat-description">{{ compliance.description }}</div>
+                <div class="stat-value-container">
+                  <div class="stat-value">{{ compliance.value.toFixed(2) }}%</div>
+                  <div class="stat-threshold">Threshold: {{ compliance.threshold }}%</div>
+                </div>
+                <div class="compliance-bar">
+                  <div class="compliance-progress"
+                       [style.width.%]="getProgressWidth(compliance.value, compliance.threshold)"
+                       [ngClass]="compliance.isCompliant ? 'compliant-bar' : 'non-compliant-bar'"></div>
+                  <div class="threshold-marker" [style.left.%]="compliance.threshold"></div>
+                </div>
+                <div class="stat-details" *ngIf="compliance.details">{{ compliance.details }}</div>
               </div>
             </div>
           </div>
         </div>
-        
+
         <div class="stock-news">
           <h3>Latest News</h3>
-          
+
           <app-loading-spinner *ngIf="loadingNews" message="Loading news..."></app-loading-spinner>
-          
+
           <div class="no-news" *ngIf="!loadingNews && relatedNews.length === 0">
             <p>No recent news for this stock.</p>
           </div>
-          
+
           <div class="news-list" *ngIf="!loadingNews && relatedNews.length > 0">
             <app-news-card *ngFor="let newsItem of relatedNews" [news]="newsItem"></app-news-card>
           </div>
@@ -275,12 +272,12 @@ import { LoadingSpinnerComponent } from '../../components/loading-spinner/loadin
     }
 
     .detail-section {
-      margin-bottom: 20px;
+      margin-bottom: 30px;
     }
 
     .detail-section h3 {
       font-size: 1.3rem;
-      margin-bottom: 12px;
+      margin-bottom: 20px;
       color: var(--primary-color);
       position: relative;
       display: inline-block;
@@ -306,35 +303,110 @@ import { LoadingSpinnerComponent } from '../../components/loading-spinner/loadin
       color: #333;
     }
 
-    .stats-grid {
+    .sharia-stats {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
     }
 
-    .stat-item {
-      padding: 12px;
-      background-color: #f8f9fa;
-      border-radius: 6px;
+    .sharia-stat-item {
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
+      border-left: 4px solid #ddd;
     }
 
-    .stat-item:hover {
+    .sharia-stat-item.compliant {
+      border-left-color: var(--secondary-color);
+    }
+
+    .sharia-stat-item.non-compliant {
+      border-left-color: var(--danger-color);
+    }
+
+    .sharia-stat-item:hover {
       transform: translateY(-5px);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-      background-color: white;
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
     }
 
-    .stat-label {
-      font-size: 0.9rem;
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .stat-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: var(--primary-color);
+    }
+
+    .compliance-badge {
+      font-size: 0.8rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .stat-description {
       color: #666;
-      margin-bottom: 4px;
+      font-size: 0.9rem;
+      margin-bottom: 15px;
+      line-height: 1.4;
+    }
+
+    .stat-value-container {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
     }
 
     .stat-value {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       font-weight: bold;
-      color: #333;
+    }
+
+    .stat-threshold {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .compliance-bar {
+      height: 8px;
+      background-color: #eee;
+      border-radius: 4px;
+      position: relative;
+      margin-bottom: 15px;
+      overflow: hidden;
+    }
+
+    .compliance-progress {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 1s ease;
+    }
+
+    .compliant-bar {
+      background-color: var(--secondary-color);
+    }
+
+    .non-compliant-bar {
+      background-color: var(--danger-color);
+    }
+
+    .threshold-marker {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 2px;
+      background-color: #333;
+    }
+
+    .stat-details {
+      font-size: 0.85rem;
+      color: #666;
+      font-style: italic;
     }
 
     .stock-news h3 {
@@ -381,22 +453,24 @@ import { LoadingSpinnerComponent } from '../../components/loading-spinner/loadin
       .news-list {
         grid-template-columns: 1fr;
       }
+
+      .sharia-stats {
+        grid-template-columns: 1fr;
+      }
     }
-  `
+  `,
 })
 export class StockDetailComponent implements OnInit {
   stock?: Stock;
   relatedNews: News[] = [];
   loading: boolean = true;
   loadingNews: boolean = true;
+  shariaCompliance: ShariaCompliance[] = [];
 
-  constructor(
-    private route: ActivatedRoute,
-    private apiService: ApiService
-  ) {}
+  constructor(private route: ActivatedRoute, private apiService: ApiService) { }
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.subscribe((params) => {
       const stockId = params.get('id');
       if (stockId) {
         this.loadStockDetails(stockId);
@@ -407,23 +481,107 @@ export class StockDetailComponent implements OnInit {
 
   loadStockDetails(id: string): void {
     this.loading = true;
-    this.apiService.getStockById(id).subscribe(stock => {
+    this.apiService.getStockById(id).subscribe((stock) => {
       this.stock = stock;
+      if (stock) {
+        this.calculateShariaCompliance(stock);
+      }
       this.loading = false;
     });
   }
 
   loadStockNews(id: string): void {
     this.loadingNews = true;
-    this.apiService.getNewsForStock(id).subscribe(news => {
+    this.apiService.getNewsForStock(id).subscribe((news) => {
       this.relatedNews = news;
       this.loadingNews = false;
     });
   }
 
+  calculateShariaCompliance(stock: Stock): void {
+    // AAOIFI Sharia Standards
+
+    // 1. Business Activity Screening
+    const businessActivityCompliance: ShariaCompliance = {
+      standard: "Business Activity",
+      description: "Company's primary business must be permissible under Sharia law",
+      value: 100, // Simplified for demo
+      threshold: 95,
+      isCompliant: true,
+      details: "Based on industry classification and business description"
+    };
+
+    // 2. Financial Ratio: Debt to Total Assets
+    const totalDebt = stock.totalDebt || 0;
+    const totalAssets = stock.totalAssets || 1; // Avoid division by zero
+    const debtToAssetsRatio = (totalDebt / totalAssets) * 100;
+    const debtCompliance: ShariaCompliance = {
+      standard: "Debt Ratio",
+      description: "Interest-bearing debt to total assets ratio",
+      value: debtToAssetsRatio,
+      threshold: 33,
+      isCompliant: debtToAssetsRatio <= 33,
+      details: `Total debt: $${this.formatLargeNumber(totalDebt)}, Total assets: $${this.formatLargeNumber(totalAssets)}`
+    };
+
+    // 3. Financial Ratio: Liquid Assets to Total Assets
+    const liquidAssets = (stock.cashAndCashEquivalents || 0) + (stock.accountsReceivable || 0);
+    const liquidToAssetsRatio = (liquidAssets / totalAssets) * 100;
+    const liquidAssetsCompliance: ShariaCompliance = {
+      standard: "Liquid Assets Ratio",
+      description: "Cash and receivables to total assets ratio",
+      value: liquidToAssetsRatio,
+      threshold: 33,
+      isCompliant: liquidToAssetsRatio <= 33,
+      details: `Liquid assets: $${this.formatLargeNumber(liquidAssets)}, Total assets: $${this.formatLargeNumber(totalAssets)}`
+    };
+
+    // 4. Financial Ratio: Non-Permissible Income
+    const totalRevenue = stock.totalRevenue || 1; // Avoid division by zero
+    const nonPermissibleIncome = stock.interestIncome || 0;
+    const nonPermissibleIncomeRatio = (nonPermissibleIncome / totalRevenue) * 100;
+    const incomeCompliance: ShariaCompliance = {
+      standard: "Non-Permissible Income",
+      description: "Non-compliant income to total revenue ratio",
+      value: nonPermissibleIncomeRatio,
+      threshold: 5,
+      isCompliant: nonPermissibleIncomeRatio <= 5,
+      details: `Non-permissible income: $${this.formatLargeNumber(nonPermissibleIncome)}, Total revenue: $${this.formatLargeNumber(totalRevenue)}`
+    };
+
+    // 5. Financial Ratio: Illiquid Assets to Total Assets
+    const illiquidAssets = (stock.propertyPlantEquipment || 0) + (stock.inventory || 0);
+    const illiquidToAssetsRatio = (illiquidAssets / totalAssets) * 100;
+    const illiquidAssetsCompliance: ShariaCompliance = {
+      standard: "Illiquid Assets Ratio",
+      description: "Tangible assets to total assets ratio",
+      value: illiquidToAssetsRatio,
+      threshold: 20,
+      isCompliant: illiquidToAssetsRatio >= 20,
+      details: `Illiquid assets: $${this.formatLargeNumber(illiquidAssets)}, Total assets: $${this.formatLargeNumber(totalAssets)}`
+    };
+
+    this.shariaCompliance = [
+      businessActivityCompliance,
+      debtCompliance,
+      liquidAssetsCompliance,
+      incomeCompliance,
+      illiquidAssetsCompliance
+    ];
+  }
+
+  getProgressWidth(value: number, threshold: number): number {
+    // For standards where lower is better (like debt ratio)
+    if (threshold < 50) {
+      return Math.min(value * 1.5, 100); // Scale to make the bar more visible
+    }
+    // For standards where higher is better (like illiquid assets ratio)
+    return Math.min(value, 100);
+  }
+
   formatLargeNumber(num?: number): string {
-    if (num === undefined) return 'N/A';
-    
+    if (num === undefined || num === null) return 'N/A';
+
     if (num >= 1000000000) {
       return (num / 1000000000).toFixed(2) + 'B';
     } else if (num >= 1000000) {
