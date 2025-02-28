@@ -17,20 +17,20 @@ import { LoadingSpinnerComponent } from '../../components/loading-spinner/loadin
       </div>
 
       <div class="news-filters">
-        <button
-          [ngClass]="{'active': filter === 'all'}"
+        <button 
+          [ngClass]="{'active': filter === 'all'}" 
           (click)="setFilter('all')"
         >
           All News
         </button>
-        <button
-          [ngClass]="{'active': filter === 'halal'}"
+        <button 
+          [ngClass]="{'active': filter === 'halal'}" 
           (click)="setFilter('halal')"
         >
           Halal Only
         </button>
-        <button
-          [ngClass]="{'active': filter === 'haram'}"
+        <button 
+          [ngClass]="{'active': filter === 'haram'}" 
           (click)="setFilter('haram')"
         >
           Haram Only
@@ -38,11 +38,11 @@ import { LoadingSpinnerComponent } from '../../components/loading-spinner/loadin
       </div>
 
       <app-loading-spinner *ngIf="loading" message="Loading news..."></app-loading-spinner>
-
+      
       <div class="no-news" *ngIf="!loading && filteredNews.length === 0">
         <p>No news articles found matching your criteria.</p>
       </div>
-
+      
       <div class="news-grid" *ngIf="!loading && filteredNews.length > 0">
         <app-news-card *ngFor="let newsItem of filteredNews; trackBy: trackByNewsId" [news]="newsItem"></app-news-card>
       </div>
@@ -115,7 +115,7 @@ export class NewsComponent implements OnInit {
   filter: string = 'all';
   loading: boolean = true;
 
-  constructor(private apiService: ApiService) { }
+  constructor(private apiService: ApiService) {}
 
   ngOnInit(): void {
     this.loadNews();
@@ -144,7 +144,7 @@ export class NewsComponent implements OnInit {
       this.filteredNews = this.allNews.filter(news => news.shariaStatus === 'Haram');
     }
   }
-
+  
   // Track by function for ngFor to improve performance
   trackByNewsId(index: number, news: News): string {
     return news.id;

@@ -216,7 +216,7 @@ export class HeaderComponent implements OnInit {
   showUserMenu: boolean = false;
   scrolled: boolean = false;
 
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
     this.authService.authState$.subscribe(state => {

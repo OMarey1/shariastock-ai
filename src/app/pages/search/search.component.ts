@@ -15,7 +15,7 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
   template: `
     <div class="search-page">
       <div class="background-animation" #backgroundAnimation></div>
-
+      
       <div class="search-header">
         <h2>Search Stocks</h2>
         <p>Find Sharia-compliant stocks for your investment portfolio</p>
@@ -24,9 +24,9 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
       <div class="search-container">
         <div class="search-filters">
           <div class="search-box">
-            <input
-              type="text"
-              [(ngModel)]="searchTerm"
+            <input 
+              type="text" 
+              [(ngModel)]="searchTerm" 
               (input)="searchTermChanged()"
               placeholder="Search by stock name or code"
             >
@@ -34,21 +34,21 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
               <i class="fas fa-search"></i>
             </div>
           </div>
-
+          
           <div class="category-filter">
             <h3>Filter by Category</h3>
             <div class="category-list">
               <div class="category-item">
-                <button
-                  [ngClass]="{'active': selectedCategory === ''}"
+                <button 
+                  [ngClass]="{'active': selectedCategory === ''}" 
                   (click)="filterByCategory('')"
                 >
                   All Categories
                 </button>
               </div>
               <div class="category-item" *ngFor="let category of categories">
-                <button
-                  [ngClass]="{'active': selectedCategory === category}"
+                <button 
+                  [ngClass]="{'active': selectedCategory === category}" 
                   (click)="filterByCategory(category)"
                 >
                   {{ category }}
@@ -62,13 +62,13 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
           <div class="results-header">
             <h3>Results ({{ stocks.length }})</h3>
           </div>
-
+          
           <app-loading-spinner *ngIf="loading" message="Loading stocks..."></app-loading-spinner>
-
+          
           <div class="no-results" *ngIf="!loading && stocks.length === 0">
             <p>No stocks found matching your criteria.</p>
           </div>
-
+          
           <div class="stocks-grid" *ngIf="!loading && stocks.length > 0">
             <app-stock-card *ngFor="let stock of stocks; trackBy: trackByStockId" [stock]="stock"></app-stock-card>
           </div>
@@ -277,20 +277,20 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
   searchTerm: string = '';
   selectedCategory: string = '';
   loading: boolean = true;
-
+  
   private searchTerms = new Subject<string>();
   private destroy$ = new Subject<void>();
   private animationFrameId?: number;
   private resizeObserver?: ResizeObserver;
-
+  
   @ViewChild('backgroundAnimation') backgroundAnimation!: ElementRef;
 
-  constructor(private apiService: ApiService) { }
+  constructor(private apiService: ApiService) {}
 
   ngOnInit(): void {
     this.loadCategories();
     this.loadStocks();
-
+    
     // Set up debounced search
     this.searchTerms.pipe(
       takeUntil(this.destroy$),
@@ -304,16 +304,16 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.initBackgroundAnimation();
   }
-
+  
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-
+    
     // Clean up animation frame
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
-
+    
     // Clean up resize observer
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
@@ -329,23 +329,23 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => {
       const container = this.backgroundAnimation.nativeElement;
       if (!container) return;
-
+      
       const canvas = document.createElement('canvas');
       container.appendChild(canvas);
-
+      
       canvas.width = container.offsetWidth || 300;
       canvas.height = container.offsetHeight || 500;
-
+      
       const ctx = canvas.getContext('2d');
       if (!ctx) {
         console.warn('Canvas 2D context not supported');
         return;
       }
-
+      
       // Reduce particle count for better performance
       const particles: any[] = [];
       const particleCount = 30; // Reduced from 50
-
+      
       for (let i = 0; i < particleCount; i++) {
         particles.push({
           x: Math.random() * canvas.width,
@@ -356,32 +356,32 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
           speedY: Math.random() * 0.3 - 0.15  // Reduced speed
         });
       }
-
+      
       const drawParticles = () => {
         if (!ctx) return;
-
+        
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+        
         particles.forEach(particle => {
           ctx.beginPath();
           ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
           ctx.fillStyle = particle.color;
           ctx.fill();
-
+          
           // Update position
           particle.x += particle.speedX;
           particle.y += particle.speedY;
-
+          
           // Bounce off edges
           if (particle.x < 0 || particle.x > canvas.width) {
             particle.speedX *= -1;
           }
-
+          
           if (particle.y < 0 || particle.y > canvas.height) {
             particle.speedY *= -1;
           }
         });
-
+        
         // Draw connections - only draw connections for particles that are close
         // This improves performance by reducing the number of lines drawn
         particles.forEach((particle, i) => {
@@ -391,7 +391,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
             const dx = particle.x - otherParticle.x;
             const dy = particle.y - otherParticle.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
-
+            
             if (distance < 80) { // Reduced connection distance
               ctx.beginPath();
               ctx.strokeStyle = `rgba(44, 62, 80, ${0.15 * (1 - distance / 80)})`; // Reduced opacity
@@ -402,12 +402,12 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
             }
           }
         });
-
+        
         this.animationFrameId = requestAnimationFrame(drawParticles);
       };
-
+      
       drawParticles();
-
+      
       // Handle resize with ResizeObserver
       this.resizeObserver = new ResizeObserver(() => {
         if (container) {
@@ -415,7 +415,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
           canvas.height = container.offsetHeight || 500;
         }
       });
-
+      
       this.resizeObserver.observe(container);
     }, 100); // Small delay to ensure DOM is ready
   }
@@ -438,7 +438,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedCategory = category;
     this.loadStocks();
   }
-
+  
   // Track by function for ngFor to improve performance
   trackByStockId(index: number, stock: Stock): string {
     return stock.id;

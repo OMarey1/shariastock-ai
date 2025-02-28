@@ -14,11 +14,11 @@ import { LoadingSpinnerComponent } from '../../components/loading-spinner/loadin
   template: `
     <div class="stock-detail-page">
       <app-loading-spinner *ngIf="loading" message="Loading stock details..."></app-loading-spinner>
-
+      
       <div class="not-found" *ngIf="!loading && !stock">
         <p>Stock not found.</p>
       </div>
-
+      
       <div class="stock-content" *ngIf="!loading && stock">
         <div class="stock-header">
           <div class="stock-title">
@@ -29,26 +29,26 @@ import { LoadingSpinnerComponent } from '../../components/loading-spinner/loadin
             {{ stock.shariaStatus }}
           </span>
         </div>
-
+        
         <div class="stock-price-section">
           <div class="current-price">\${{ stock.price.toFixed(2) }}</div>
           <div class="price-change" [ngClass]="stock.change >= 0 ? 'positive' : 'negative'">
             {{ stock.change >= 0 ? '+' : '' }}{{ stock.change.toFixed(2) }} ({{ stock.changePercent.toFixed(2) }}%)
           </div>
         </div>
-
+        
         <div class="stock-chart">
           <div class="chart-placeholder">
             <div class="chart-line" [ngClass]="stock.change >= 0 ? 'positive-chart' : 'negative-chart'"></div>
           </div>
         </div>
-
+        
         <div class="stock-details">
           <div class="detail-section">
             <h3>About</h3>
             <p>{{ stock.description }}</p>
           </div>
-
+          
           <div class="detail-section">
             <h3>Key Statistics</h3>
             <div class="stats-grid">
@@ -79,16 +79,16 @@ import { LoadingSpinnerComponent } from '../../components/loading-spinner/loadin
             </div>
           </div>
         </div>
-
+        
         <div class="stock-news">
           <h3>Latest News</h3>
-
+          
           <app-loading-spinner *ngIf="loadingNews" message="Loading news..."></app-loading-spinner>
-
+          
           <div class="no-news" *ngIf="!loadingNews && relatedNews.length === 0">
             <p>No recent news for this stock.</p>
           </div>
-
+          
           <div class="news-list" *ngIf="!loadingNews && relatedNews.length > 0">
             <app-news-card *ngFor="let newsItem of relatedNews" [news]="newsItem"></app-news-card>
           </div>
@@ -393,7 +393,7 @@ export class StockDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private apiService: ApiService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
@@ -423,7 +423,7 @@ export class StockDetailComponent implements OnInit {
 
   formatLargeNumber(num?: number): string {
     if (num === undefined) return 'N/A';
-
+    
     if (num >= 1000000000) {
       return (num / 1000000000).toFixed(2) + 'B';
     } else if (num >= 1000000) {

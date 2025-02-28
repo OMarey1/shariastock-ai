@@ -2,10 +2,10 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
-    selector: 'app-loading-spinner',
-    standalone: true,
-    imports: [CommonModule],
-    template: `
+  selector: 'app-loading-spinner',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
     <div class="spinner-container" [ngClass]="{'fullscreen': fullscreen}">
       <div class="spinner">
         <div class="spinner-inner"></div>
@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
       <p *ngIf="message" class="spinner-message">{{ message }}</p>
     </div>
   `,
-    styles: `
+  styles: `
     .spinner-container {
       display: flex;
       flex-direction: column;
@@ -94,6 +94,6 @@ import { CommonModule } from '@angular/common';
   `
 })
 export class LoadingSpinnerComponent {
-    @Input() message: string = '';
-    @Input() fullscreen: boolean = false;
+  @Input() message: string = '';
+  @Input() fullscreen: boolean = false;
 }
