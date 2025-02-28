@@ -92,8 +92,8 @@ import { User } from '../../models/user.model';
     }
 
     .signup-btn:hover {
-      background-color: #219653;
-      color: white;
+      background-color:rgb(12, 135, 166);
+      color: white !important;
     }
 
     .user-menu {
@@ -143,7 +143,7 @@ export class HeaderComponent implements OnInit {
   user: User | null = null;
   showUserMenu: boolean = false;
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   ngOnInit(): void {
     this.authService.authState$.subscribe(state => {

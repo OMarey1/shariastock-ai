@@ -65,7 +65,7 @@ import { Stock } from '../../models/stock.model';
     }
 
     .positive {
-      color: var(--secondary-color);
+      color: var(--halal-color);
     }
 
     .negative {
