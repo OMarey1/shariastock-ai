@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { ApiService } from '../../services/api.service';
 import { News } from '../../models/news.model';
 import { NewsCardComponent } from '../../components/news-card/news-card.component';
+import { LoadingSpinnerComponent } from '../../components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-news',
   standalone: true,
-  imports: [CommonModule, NewsCardComponent],
+  imports: [CommonModule, NewsCardComponent, LoadingSpinnerComponent],
   template: `
     <div class="news-page">
       <div class="news-header">
@@ -36,9 +37,7 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
         </button>
       </div>
 
-      <div class="loading" *ngIf="loading">
-        <p>Loading news...</p>
-      </div>
+      <app-loading-spinner *ngIf="loading" message="Loading news..."></app-loading-spinner>
 
       <div class="no-news" *ngIf="!loading && filteredNews.length === 0">
         <p>No news articles found matching your criteria.</p>
@@ -88,7 +87,7 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
       border-color: var(--primary-color);
     }
 
-    .loading, .no-news {
+    .no-news {
       padding: 20px;
       text-align: center;
       color: #666;

@@ -5,22 +5,20 @@ import { ApiService } from '../../services/api.service';
 import { Stock } from '../../models/stock.model';
 import { News } from '../../models/news.model';
 import { NewsCardComponent } from '../../components/news-card/news-card.component';
+import { LoadingSpinnerComponent } from '../../components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-stock-detail',
   standalone: true,
-  imports: [CommonModule, NewsCardComponent],
+  imports: [CommonModule, NewsCardComponent, LoadingSpinnerComponent],
   template: `
     <div class="stock-detail-page">
-      <div class="loading" *ngIf="loading">
-        <div class="loading-spinner"></div>
-        <p>Loading stock details...</p>
-      </div>
-      
+      <app-loading-spinner *ngIf="loading" message="Loading stock details..."></app-loading-spinner>
+
       <div class="not-found" *ngIf="!loading && !stock">
         <p>Stock not found.</p>
       </div>
-      
+
       <div class="stock-content" *ngIf="!loading && stock">
         <div class="stock-header">
           <div class="stock-title">
@@ -31,26 +29,26 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
             {{ stock.shariaStatus }}
           </span>
         </div>
-        
+
         <div class="stock-price-section">
           <div class="current-price">\${{ stock.price.toFixed(2) }}</div>
           <div class="price-change" [ngClass]="stock.change >= 0 ? 'positive' : 'negative'">
             {{ stock.change >= 0 ? '+' : '' }}{{ stock.change.toFixed(2) }} ({{ stock.changePercent.toFixed(2) }}%)
           </div>
         </div>
-        
+
         <div class="stock-chart">
           <div class="chart-placeholder">
             <div class="chart-line" [ngClass]="stock.change >= 0 ? 'positive-chart' : 'negative-chart'"></div>
           </div>
         </div>
-        
+
         <div class="stock-details">
           <div class="detail-section">
             <h3>About</h3>
             <p>{{ stock.description }}</p>
           </div>
-          
+
           <div class="detail-section">
             <h3>Key Statistics</h3>
             <div class="stats-grid">
@@ -81,19 +79,16 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
             </div>
           </div>
         </div>
-        
+
         <div class="stock-news">
           <h3>Latest News</h3>
-          
-          <div class="loading" *ngIf="loadingNews">
-            <div class="loading-spinner"></div>
-            <p>Loading news...</p>
-          </div>
-          
+
+          <app-loading-spinner *ngIf="loadingNews" message="Loading news..."></app-loading-spinner>
+
           <div class="no-news" *ngIf="!loadingNews && relatedNews.length === 0">
             <p>No recent news for this stock.</p>
           </div>
-          
+
           <div class="news-list" *ngIf="!loadingNews && relatedNews.length > 0">
             <app-news-card *ngFor="let newsItem of relatedNews" [news]="newsItem"></app-news-card>
           </div>
@@ -116,30 +111,13 @@ import { NewsCardComponent } from '../../components/news-card/news-card.componen
       }
     }
 
-    .loading, .not-found {
+    .not-found {
       padding: 20px;
       text-align: center;
       color: #666;
       background: white;
       border-radius: 8px;
       box-shadow: var(--shadow);
-    }
-
-    .loading-spinner {
-      display: inline-block;
-      width: 40px;
-      height: 40px;
-      border: 3px solid rgba(44, 62, 80, 0.1);
-      border-radius: 50%;
-      border-top-color: var(--primary-color);
-      animation: spin 1s ease-in-out infinite;
-      margin-bottom: 10px;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
     }
 
     .stock-content {
@@ -415,7 +393,7 @@ export class StockDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private apiService: ApiService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
@@ -445,7 +423,7 @@ export class StockDetailComponent implements OnInit {
 
   formatLargeNumber(num?: number): string {
     if (num === undefined) return 'N/A';
-    
+
     if (num >= 1000000000) {
       return (num / 1000000000).toFixed(2) + 'B';
     } else if (num >= 1000000) {

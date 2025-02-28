@@ -4,13 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { Stock } from '../../models/stock.model';
 import { StockCardComponent } from '../../components/stock-card/stock-card.component';
+import { LoadingSpinnerComponent } from '../../components/loading-spinner/loading-spinner.component';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, StockCardComponent],
+  imports: [CommonModule, FormsModule, StockCardComponent, LoadingSpinnerComponent],
   template: `
     <div class="search-page">
       <div class="background-animation" #backgroundAnimation></div>
@@ -62,10 +63,7 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
             <h3>Results ({{ stocks.length }})</h3>
           </div>
 
-          <div class="loading" *ngIf="loading">
-            <div class="loading-spinner"></div>
-            <p>Loading stocks...</p>
-          </div>
+          <app-loading-spinner *ngIf="loading" message="Loading stocks..."></app-loading-spinner>
 
           <div class="no-results" *ngIf="!loading && stocks.length === 0">
             <p>No stocks found matching your criteria.</p>
@@ -254,27 +252,10 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
       border-bottom: 1px solid #eee;
     }
 
-    .loading, .no-results {
+    .no-results {
       padding: 20px;
       text-align: center;
       color: #666;
-    }
-
-    .loading-spinner {
-      display: inline-block;
-      width: 40px;
-      height: 40px;
-      border: 3px solid rgba(44, 62, 80, 0.1);
-      border-radius: 50%;
-      border-top-color: var(--primary-color);
-      animation: spin 1s ease-in-out infinite;
-      margin-bottom: 10px;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
     }
 
     .stocks-grid {

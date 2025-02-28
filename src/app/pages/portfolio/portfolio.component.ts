@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
 import { Stock } from '../../models/stock.model';
+import { LoadingSpinnerComponent } from '../../components/loading-spinner/loading-spinner.component';
 
 interface PortfolioItem {
   stock: Stock;
@@ -17,14 +18,14 @@ interface PortfolioItem {
 @Component({
   selector: 'app-portfolio',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, LoadingSpinnerComponent],
   template: `
     <div class="portfolio-page">
       <div class="portfolio-header">
         <h2>Your Portfolio</h2>
         <p>Track your Sharia-compliant investments</p>
       </div>
-      
+
       <div class="portfolio-summary">
         <div class="summary-card">
           <div class="summary-title">Total Value</div>
@@ -42,17 +43,15 @@ interface PortfolioItem {
           <div class="summary-value">{{ halalStocksCount }} / {{ portfolio.length }}</div>
         </div>
       </div>
-      
+
       <div class="portfolio-content">
-        <div class="loading" *ngIf="loading">
-          <p>Loading your portfolio...</p>
-        </div>
-        
+        <app-loading-spinner *ngIf="loading" message="Loading your portfolio..."></app-loading-spinner>
+
         <div class="empty-portfolio" *ngIf="!loading && portfolio.length === 0">
           <p>Your portfolio is empty. Start by adding some Sharia-compliant stocks!</p>
           <a routerLink="/search" class="browse-button">Browse Stocks</a>
         </div>
-        
+
         <div class="portfolio-table" *ngIf="!loading && portfolio.length > 0">
           <table>
             <thead>
@@ -154,7 +153,7 @@ interface PortfolioItem {
       padding: 20px;
     }
 
-    .loading, .empty-portfolio {
+    .empty-portfolio {
       padding: 30px;
       text-align: center;
       color: #666;
@@ -240,7 +239,7 @@ export class PortfolioComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private apiService: ApiService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadPortfolio();
@@ -248,7 +247,7 @@ export class PortfolioComponent implements OnInit {
 
   loadPortfolio(): void {
     this.loading = true;
-    
+
     // In a real app, you would fetch the user's portfolio from an API
     // For demo purposes, we'll create a mock portfolio using the stocks from the API service
     this.apiService.getStocks().subscribe(stocks => {
@@ -259,7 +258,7 @@ export class PortfolioComponent implements OnInit {
         const currentValue = shares * stock.price;
         const profit = currentValue - (shares * purchasePrice);
         const profitPercent = (profit / (shares * purchasePrice)) * 100;
-        
+
         return {
           stock,
           shares,
@@ -269,7 +268,7 @@ export class PortfolioComponent implements OnInit {
           profitPercent
         };
       });
-      
+
       // Calculate summary statistics
       this.calculateSummary();
       this.loading = false;
@@ -278,11 +277,11 @@ export class PortfolioComponent implements OnInit {
 
   calculateSummary(): void {
     this.totalValue = this.portfolio.reduce((sum, item) => sum + item.currentValue, 0);
-    
+
     const totalCost = this.portfolio.reduce((sum, item) => sum + (item.shares * item.purchasePrice), 0);
     this.totalProfit = this.totalValue - totalCost;
     this.totalProfitPercent = totalCost > 0 ? (this.totalProfit / totalCost) * 100 : 0;
-    
+
     this.halalStocksCount = this.portfolio.filter(item => item.stock.shariaStatus === 'Halal').length;
   }
 }
